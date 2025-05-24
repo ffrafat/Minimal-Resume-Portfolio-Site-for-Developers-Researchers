@@ -7,13 +7,13 @@
 
 body {
   background-color: var(--bg-color, #ffffff);
-  color: var(--text-color, #000000);
   font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  color: var(--text-color, #000000);
   font-size: 16px;
   line-height: 1.6;
   padding: 2rem;
   max-width: 700px;
-  margin: 25vh auto 4rem auto;
+  margin: 4rem auto 4rem auto;
   text-align: justify;
 }
 
@@ -34,6 +34,7 @@ section {
 /* Paragraphs: normal casing, justified */
 p {
   margin-bottom: 1rem;
+  color: var(--text-color, #000000);
 }
 
 /* Links: italic, underlined, with upward arrow ↗ */
@@ -50,10 +51,9 @@ a::after {
   content: " ↗";
   font-style: normal;
   font-weight: bold;
-  color: var(--link-color, inherit);
 }
 
-/* Link hover and focus */
+/* Link hover and selection color in black */
 a:hover,
 a:focus {
   color: var(--link-hover-text, #ffffff);
