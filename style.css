@@ -1,0 +1,66 @@
+/* Reset browser defaults */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #ffffff;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  color: #000000;
+  font-size: 16px;
+  line-height: 1.6;
+  padding: 2rem;
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: justify;
+}
+
+/* Headings: uppercase, same size as paragraph */
+h1, h2, h3, h4, h5, h6 {
+  font-size: 1rem;
+  text-transform: uppercase;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+/* Section spacing */
+section {
+  margin-bottom: 2rem;
+}
+
+/* Paragraphs: normal casing, justified */
+p {
+  margin-bottom: 1rem;
+}
+
+/* Links: italic, underlined, with upward arrow ↗ */
+a {
+  font-style: italic;
+  text-decoration: underline;
+  color: inherit;
+  transition: color 0.2s ease, background-color 0.2s ease;
+  position: relative;
+}
+
+/* Adds the ↗ arrow after every link */
+a::after {
+  content: " ↗";
+  font-style: normal;
+  font-weight: bold;
+}
+
+/* Link hover and selection color in black */
+a:hover,
+a:focus {
+  color: #ffffff;
+  background-color: #000000;
+  text-decoration: none;
+}
+
+/* Text selection highlight (for whole site) */
+::selection {
+  background-color: #000000;
+  color: #ffffff;
+}
