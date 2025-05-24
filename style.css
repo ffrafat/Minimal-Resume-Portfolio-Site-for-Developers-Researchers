@@ -6,14 +6,12 @@
 }
 
 body {
-  background-color: var(--bg-color, #ffffff);
   font-family: 'IBM Plex Mono', 'Courier New', monospace;
-  color: var(--text-color, #000000);
   font-size: 16px;
   line-height: 1.6;
-  padding: 2rem;
   max-width: 700px;
-  margin: 4rem auto 4rem auto;
+  margin: 25vh auto 4rem auto;
+  padding: 2rem;
   text-align: justify;
 }
 
@@ -23,7 +21,6 @@ h1, h2, h3, h4, h5, h6 {
   text-transform: uppercase;
   font-weight: bold;
   margin-bottom: 1rem;
-  color: var(--text-color, #000000);
 }
 
 /* Section spacing */
@@ -34,14 +31,13 @@ section {
 /* Paragraphs: normal casing, justified */
 p {
   margin-bottom: 1rem;
-  color: var(--text-color, #000000);
 }
 
 /* Links: italic, underlined, with upward arrow ↗ */
 a {
   font-style: italic;
   text-decoration: underline;
-  color: var(--link-color, inherit);
+  color: inherit;
   transition: color 0.2s ease, background-color 0.2s ease;
   position: relative;
 }
@@ -53,16 +49,4 @@ a::after {
   font-weight: bold;
 }
 
-/* Link hover and selection color in black */
-a:hover,
-a:focus {
-  color: var(--link-hover-text, #ffffff);
-  background-color: var(--link-hover-bg, #000000);
-  text-decoration: none;
-}
-
-/* Text selection highlight (for whole site) */
-::selection {
-  background-color: var(--selection-bg, #000000);
-  color: var(--selection-text, #ffffff);
-}
+/* Hover and selection colors will be dynamically injected by JS */
