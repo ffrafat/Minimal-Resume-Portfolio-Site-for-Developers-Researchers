@@ -6,14 +6,14 @@
 }
 
 body {
-  background-color: #ffffff;
+  background-color: var(--bg-color, #ffffff);
+  color: var(--text-color, #000000);
   font-family: 'IBM Plex Mono', 'Courier New', monospace;
-  color: #000000;
   font-size: 16px;
   line-height: 1.6;
   padding: 2rem;
   max-width: 700px;
-  margin: 0 auto;
+  margin: 25vh auto 4rem auto;
   text-align: justify;
 }
 
@@ -23,6 +23,7 @@ h1, h2, h3, h4, h5, h6 {
   text-transform: uppercase;
   font-weight: bold;
   margin-bottom: 1rem;
+  color: var(--text-color, #000000);
 }
 
 /* Section spacing */
@@ -39,7 +40,7 @@ p {
 a {
   font-style: italic;
   text-decoration: underline;
-  color: inherit;
+  color: var(--link-color, inherit);
   transition: color 0.2s ease, background-color 0.2s ease;
   position: relative;
 }
@@ -49,18 +50,19 @@ a::after {
   content: " ↗";
   font-style: normal;
   font-weight: bold;
+  color: var(--link-color, inherit);
 }
 
-/* Link hover and selection color in black */
+/* Link hover and focus */
 a:hover,
 a:focus {
-  color: #ffffff;
-  background-color: #000000;
+  color: var(--link-hover-text, #ffffff);
+  background-color: var(--link-hover-bg, #000000);
   text-decoration: none;
 }
 
 /* Text selection highlight (for whole site) */
 ::selection {
-  background-color: #000000;
-  color: #ffffff;
+  background-color: var(--selection-bg, #000000);
+  color: var(--selection-text, #ffffff);
 }
