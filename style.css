@@ -45,8 +45,15 @@ a {
 /* Adds the ↗ arrow after every link */
 a::after {
   content: " ↗";
+  font-size: 20px;
   font-style: normal;
-  font-weight: bold;
 }
 
-/* Hover and selection colors will be dynamically injected by JS */
+.avatar {
+  margin-right: 1.5rem;
+  margin-bottom: 1rem;
+  border: 5px solid var(--accent-color); /* Thick outline */
+  border-radius: 100%;        /* Rounded corners */
+  max-width: 25%;
+  height: auto;
+}

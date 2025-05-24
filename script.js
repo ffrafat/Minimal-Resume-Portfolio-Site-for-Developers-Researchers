@@ -64,6 +64,8 @@ function applyRandomTheme() {
   const theme = themes[Math.floor(Math.random() * themes.length)];
   document.body.style.backgroundColor = theme.bg;
   document.body.style.color = theme.text;
+  document.documentElement.style.setProperty('--accent-color', theme.text);
+
 
   const style = document.createElement("style");
   style.innerHTML = `
