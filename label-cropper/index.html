@@ -341,9 +341,9 @@
     ctx.fillRect(0, 0, w, headerH);
 
     const logoImg = await getLogoImg();
-    const leftPad = Math.round(w * 0.03);
-    const rightPad = Math.round(w * 0.03);
-    const vPad = Math.round(headerH * 0.08);
+    const leftPad = Math.round(w * 0.12);
+    const rightPad = Math.round(w * 0.12);
+    const vPad = Math.round(headerH * 0.22);
     const maxLogoW = w - leftPad - rightPad;
     const maxLogoH = headerH - vPad * 2;
     const scale = Math.min(maxLogoW / logoImg.naturalWidth, maxLogoH / logoImg.naturalHeight);
@@ -414,9 +414,9 @@
     await document.fonts.load('700 48px "IBM Plex Mono"');
     await document.fonts.ready;
 
-    const padY = Math.round(band.height * 0.18);
+    const padY = Math.round(band.height * 0.05);
     const availH = band.height - padY * 2;
-    const availW = w * 0.88;
+    const availW = w * 0.95;
     let size = Math.round(availH);
     ctx.font = `700 ${size}px "IBM Plex Mono"`;
     while (ctx.measureText(idText).width > availW && size > 8) {
