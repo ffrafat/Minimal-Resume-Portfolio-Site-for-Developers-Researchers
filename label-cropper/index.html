@@ -156,7 +156,7 @@
 
   // Fixed pipeline — no user-facing settings. Tuned against real Steadfast exports.
   const RENDER_DPI = 300;
-  const MARGIN_MM = 2;
+  const MARGIN_MM = 0; // printer already applies its own safe margin
   const LABEL_W_MM = 50, LABEL_H_MM = 70; // your printer's actual stock size
   const TARGET_RATIO = LABEL_W_MM / LABEL_H_MM; // width/height (not Steadfast's nominal "2x3in", which is really 50.8x76.2mm)
   const DETECT_THRESHOLD = 248;
