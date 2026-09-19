@@ -22,7 +22,7 @@
 </style>
 <body>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Karla:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Karla:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap');
 
   :root{
     --bg:#F1F3F9;
@@ -328,6 +328,84 @@
     return true;
   }
 
+  // ---------- big tracking number in the blank space below the COD box ----------
+  // Reads the actual consignment number back out of the QR code we just cropped
+  // (rather than guessing at OCR), so it's always exactly right, then finds the
+  // biggest blank white band in the lower half of the label — the gap between
+  // the COD box and the footer — and prints it there, large.
+  function findBlankBand(ctx, w, h) {
+    const searchStart = Math.floor(h * 0.55);
+    const searchEnd = Math.floor(h * 0.97);
+    const data = ctx.getImageData(0, searchStart, w, searchEnd - searchStart).data;
+    const isBlankRow = [];
+    for (let y = 0; y < searchEnd - searchStart; y++) {
+      let white = 0;
+      const rowBase = y * w;
+      for (let x = 0; x < w; x++) {
+        const i = (rowBase + x) * 4;
+        const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+        if (lum > 248) white++;
+      }
+      isBlankRow.push(white / w > 0.9);
+    }
+    // Tolerate a thin hairline divider (a run of a few non-blank rows) inside
+    // an otherwise blank stretch, so one faint rule doesn't split the band.
+    const tolerance = Math.max(2, Math.round(h * 0.003));
+    let bestStart = -1, bestLen = 0, curStart = -1, curLen = 0, gapRun = 0;
+    for (let y = 0; y < isBlankRow.length; y++) {
+      if (isBlankRow[y]) {
+        if (curStart < 0) curStart = y;
+        curLen = y - curStart + 1;
+        gapRun = 0;
+      } else if (curStart >= 0 && gapRun < tolerance) {
+        gapRun++;
+        curLen = y - curStart + 1;
+      } else {
+        if (curLen > bestLen) { bestLen = curLen; bestStart = curStart; }
+        curStart = -1; curLen = 0; gapRun = 0;
+      }
+    }
+    if (curLen > bestLen) { bestLen = curLen; bestStart = curStart; }
+    if (bestStart < 0) return null;
+    return { top: searchStart + bestStart, height: bestLen };
+  }
+
+  async function addBigTrackingNumber(outCanvas) {
+    const ctx = outCanvas.getContext('2d');
+    const w = outCanvas.width, h = outCanvas.height;
+
+    let idText = null;
+    try {
+      const imgData = ctx.getImageData(0, 0, w, h);
+      const result = window.jsQR ? window.jsQR(imgData.data, w, h) : null;
+      if (result && result.data) idText = result.data;
+    } catch (e) {}
+    if (!idText) return false;
+
+    const band = findBlankBand(ctx, w, h);
+    if (!band || band.height < h * 0.035) return false;
+
+    await document.fonts.load('700 48px "IBM Plex Mono"');
+    await document.fonts.ready;
+
+    const padY = Math.round(band.height * 0.18);
+    const availH = band.height - padY * 2;
+    const availW = w * 0.88;
+    let size = Math.round(availH);
+    ctx.font = `700 ${size}px "IBM Plex Mono"`;
+    while (ctx.measureText(idText).width > availW && size > 8) {
+      size -= 1;
+      ctx.font = `700 ${size}px "IBM Plex Mono"`;
+    }
+    ctx.fillStyle = '#000';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(idText, w / 2, band.top + band.height / 2);
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    return true;
+  }
+
   // ---------- process + show ----------
   async function processAndShow() {
     const cropBox = computeCropBox();
@@ -342,6 +420,8 @@
     const placed = await applyShopLogo(out);
     if (!placed) showToast("Couldn't find a header band for the logo — showing without it");
     else toastEl.classList.remove('show');
+
+    await addBigTrackingNumber(out);
 
     resultCanvas.width = out.width;
     resultCanvas.height = out.height;
@@ -393,6 +473,7 @@
     resultCanvas.height = 0;
   });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 
 <script>
   if ('serviceWorker' in navigator) {
