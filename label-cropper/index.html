@@ -378,7 +378,7 @@
     try {
       const imgData = ctx.getImageData(0, 0, w, h);
       const result = window.jsQR ? window.jsQR(imgData.data, w, h) : null;
-      if (result && result.data) idText = result.data;
+      if (result && result.data) idText = '#' + result.data;
     } catch (e) {}
     if (!idText) return false;
 
