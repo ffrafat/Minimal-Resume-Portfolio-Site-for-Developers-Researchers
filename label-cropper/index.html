@@ -313,8 +313,7 @@
 
   // Finds the label's header divider (a near-full-width dark rule near the
   // top) and replaces everything above it — icon and Steadfast's own
-  // shop-name/Merchant-ID text alike — with the full logo, sized to fill
-  // that entire header width and height.
+  // shop-name/Merchant-ID text alike — with the full logo, tightly sized.
   async function applyShopLogo(outCanvas) {
     const ctx = outCanvas.getContext('2d');
     const w = outCanvas.width, h = outCanvas.height;
@@ -335,21 +334,38 @@
     if (dividerY < 0) return false;
 
     const pad = Math.round(h * 0.01);
-    const headerH = Math.max(10, dividerY - pad);
+    const headerH = Math.max(10, dividerY - pad); // Steadfast's original header height
 
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, w, headerH);
-
+    // Size the logo by width only (with generous side padding), then fit the
+    // header band tightly around it — not to Steadfast's original header
+    // height, which left dead space above/below whenever the logo (width-
+    // constrained) didn't need the full original height.
     const logoImg = await getLogoImg();
     const leftPad = Math.round(w * 0.12);
     const rightPad = Math.round(w * 0.12);
-    const vPad = Math.round(headerH * 0.22);
-    const maxLogoW = w - leftPad - rightPad;
-    const maxLogoH = headerH - vPad * 2;
-    const scale = Math.min(maxLogoW / logoImg.naturalWidth, maxLogoH / logoImg.naturalHeight);
+    const scale = (w - leftPad - rightPad) / logoImg.naturalWidth;
     const drawW = logoImg.naturalWidth * scale, drawH = logoImg.naturalHeight * scale;
+    const vPad = Math.round(drawH * 0.12);
+    const newHeaderH = Math.min(headerH, Math.round(drawH + vPad * 2));
+
+    // Shift everything below the original header up to close the freed gap —
+    // a straight copy, not a rescale, so barcode/QR pixels are untouched. The
+    // space this reclaims at the very bottom is exactly where the big
+    // tracking number's blank-space detection looks, so it grows too.
+    if (newHeaderH < headerH) {
+      const rest = document.createElement('canvas');
+      rest.width = w; rest.height = h - headerH;
+      rest.getContext('2d').drawImage(outCanvas, 0, headerH, w, h - headerH, 0, 0, w, h - headerH);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, newHeaderH, w, h - newHeaderH);
+      ctx.drawImage(rest, 0, newHeaderH);
+    }
+
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, w, newHeaderH);
+
     const lx = Math.round((w - drawW) / 2);
-    const ly = Math.round((headerH - drawH) / 2);
+    const ly = Math.round((newHeaderH - drawH) / 2);
     ctx.drawImage(logoImg, lx, ly, drawW, drawH);
     return true;
   }
