@@ -341,8 +341,8 @@
     // height, which left dead space above/below whenever the logo (width-
     // constrained) didn't need the full original height.
     const logoImg = await getLogoImg();
-    const leftPad = Math.round(w * 0.12);
-    const rightPad = Math.round(w * 0.12);
+    const leftPad = Math.round(w * 0.22);
+    const rightPad = Math.round(w * 0.22);
     const scale = (w - leftPad - rightPad) / logoImg.naturalWidth;
     const drawW = logoImg.naturalWidth * scale, drawH = logoImg.naturalHeight * scale;
     const vPad = Math.round(drawH * 0.12);
