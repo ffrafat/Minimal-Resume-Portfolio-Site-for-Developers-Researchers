@@ -285,92 +285,44 @@
     return logoImgPromise;
   }
 
-  // The gap before Steadfast's own "Circuitry Shop BD / Merchant ID" text starts
-  // is only ~20% of the label width — nowhere near enough for the full logo
-  // (icon + wordmark, a wide 2.55:1 shape) to read as prominent within it. So
-  // instead of squeezing the logo into that corner, we give it its own row
-  // above everything else, and uniformly scale the entire original label down
-  // (never distorting it — same scale on both axes) to make room. That keeps
-  // barcode module widths and QR modules undistorted, and never touches
-  // Steadfast's own text at all.
+  // Finds the label's header divider (a near-full-width dark rule near the
+  // top) and replaces everything above it — icon and Steadfast's own
+  // shop-name/Merchant-ID text alike — with the full logo, sized to fill
+  // that entire header width and height.
   async function applyShopLogo(outCanvas) {
+    const ctx = outCanvas.getContext('2d');
     const w = outCanvas.width, h = outCanvas.height;
-    const logoImg = await getLogoImg();
-
-    const original = document.createElement('canvas');
-    original.width = w;
-    original.height = h;
-    const octx = original.getContext('2d');
-    octx.drawImage(outCanvas, 0, 0);
-
-    // Find Steadfast's own small icon within the ORIGINAL (pre-scale) header,
-    // so once everything is shrunk we can blank just that icon out — leaving
-    // "Circuitry Shop BD" / "Merchant ID" untouched — instead of showing our
-    // big new logo AND their small one stacked on top of each other.
-    const origData = octx.getImageData(0, 0, w, h).data;
-    const searchEnd = Math.floor(h * 0.30), searchStart = Math.floor(h * 0.05);
+    const data = ctx.getImageData(0, 0, w, h).data;
+    const searchEnd = Math.floor(h * 0.30);
+    const searchStart = Math.floor(h * 0.05);
     let dividerY = -1;
     for (let y = searchStart; y < searchEnd; y++) {
       let dark = 0;
       const rowBase = y * w;
       for (let x = 0; x < w; x++) {
         const i = (rowBase + x) * 4;
-        const lum = 0.299 * origData[i] + 0.587 * origData[i + 1] + 0.114 * origData[i + 2];
+        const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
         if (lum < 120) dark++;
       }
       if (dark / w > 0.75) { dividerY = y; break; }
     }
-    let origHeaderH = 0, origIconClearW = 0;
-    if (dividerY >= 0) {
-      origHeaderH = Math.max(10, dividerY - Math.round(h * 0.01));
-      let colHasInk = new Uint8Array(w);
-      for (let x = 0; x < w; x++) {
-        let ink = false;
-        for (let y = 0; y < origHeaderH; y++) {
-          const i = (y * w + x) * 4;
-          const lum = 0.299 * origData[i] + 0.587 * origData[i + 1] + 0.114 * origData[i + 2];
-          if (lum < 200) { ink = true; break; }
-        }
-        colHasInk[x] = ink ? 1 : 0;
-      }
-      const gapNeeded = Math.max(3, Math.round(w * 0.015));
-      let x = 0;
-      while (x < w && !colHasInk[x]) x++;
-      let iconEnd = Math.round(w * 0.35), run = 0;
-      for (let xx = x; xx < w; xx++) {
-        if (!colHasInk[xx]) {
-          run++;
-          if (run >= gapNeeded) { iconEnd = xx - run + 1; break; }
-        } else run = 0;
-      }
-      origIconClearW = Math.min(w, iconEnd + Math.round(w * 0.008));
-    }
+    if (dividerY < 0) return false;
 
-    const bandH = Math.round(h * 0.135);
-    const scale = (h - bandH) / h;
-    const scaledW = Math.round(w * scale);
-    const scaledH = h - bandH;
-    const xOffset = Math.round((w - scaledW) / 2);
+    const pad = Math.round(h * 0.01);
+    const headerH = Math.max(10, dividerY - pad);
 
-    const ctx = outCanvas.getContext('2d');
-    ctx.clearRect(0, 0, w, h);
     ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, w, h);
-    ctx.drawImage(original, 0, 0, w, h, xOffset, bandH, scaledW, scaledH);
+    ctx.fillRect(0, 0, w, headerH);
 
-    if (origIconClearW > 0) {
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(xOffset, bandH, origIconClearW * scale, origHeaderH * scale);
-    }
-
-    const leftPad = Math.round(w * 0.07);
-    const rightPad = Math.round(w * 0.05);
-    const vPad = Math.round(bandH * 0.14);
+    const logoImg = await getLogoImg();
+    const leftPad = Math.round(w * 0.03);
+    const rightPad = Math.round(w * 0.03);
+    const vPad = Math.round(headerH * 0.08);
     const maxLogoW = w - leftPad - rightPad;
-    const maxLogoH = bandH - vPad * 2;
-    const logoScale = Math.min(maxLogoW / logoImg.naturalWidth, maxLogoH / logoImg.naturalHeight);
-    const drawW = logoImg.naturalWidth * logoScale, drawH = logoImg.naturalHeight * logoScale;
-    const ly = Math.round((bandH - drawH) / 2);
+    const maxLogoH = headerH - vPad * 2;
+    const scale = Math.min(maxLogoW / logoImg.naturalWidth, maxLogoH / logoImg.naturalHeight);
+    const drawW = logoImg.naturalWidth * scale, drawH = logoImg.naturalHeight * scale;
+    const ly = Math.round((headerH - drawH) / 2);
     ctx.drawImage(logoImg, leftPad, ly, drawW, drawH);
     return true;
   }
@@ -386,8 +338,9 @@
       cropBox.x, cropBox.y, cropBox.w, cropBox.h,
       0, 0, out.width, out.height
     );
-    await applyShopLogo(out);
-    toastEl.classList.remove('show');
+    const placed = await applyShopLogo(out);
+    if (!placed) showToast("Couldn't find a header band for the logo — showing without it");
+    else toastEl.classList.remove('show');
 
     resultCanvas.width = out.width;
     resultCanvas.height = out.height;
