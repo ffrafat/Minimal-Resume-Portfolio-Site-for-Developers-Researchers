@@ -322,8 +322,9 @@
     const maxLogoH = headerH - vPad * 2;
     const scale = Math.min(maxLogoW / logoImg.naturalWidth, maxLogoH / logoImg.naturalHeight);
     const drawW = logoImg.naturalWidth * scale, drawH = logoImg.naturalHeight * scale;
+    const lx = Math.round((w - drawW) / 2);
     const ly = Math.round((headerH - drawH) / 2);
-    ctx.drawImage(logoImg, leftPad, ly, drawW, drawH);
+    ctx.drawImage(logoImg, lx, ly, drawW, drawH);
     return true;
   }
 
